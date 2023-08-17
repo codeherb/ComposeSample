@@ -38,18 +38,16 @@ jobs:
             
       - name: Build 
         id: build
-        run: ./gradlew clean -PfromGithubAction=true build --no-daemon --stacktrace --scan
-
-      - name: Get branch name
-        uses: nelonoel/branch-name@v1.0.1
-
-      - name: Cut branch name
-        id: branch
-        run: |
-          echo "::set-output name=branch_name::$(expr $BRANCH_NAME | cut -d'_' -f1)"
+        run: ./gradlew clean -PfromGithubAction=true assembleDebug --no-daemon --stacktrace --scan
 
       - name: Get version name
-        id: version
+        id: get-version-name
         run: |
-          echo "::set-output name=version_code::$(jq '.elements[0].versionCode' app/build/outputs/apk/debug/output-metadata.json)"
-          echo "::set-output name=version_name::$(jq '.elements[0].versionName' app/build/outputs/apk/beta/output-metadata.json)"
+          echo "version_code=$(jq '.elements[0].versionCode' app/build/outputs/apk/debug/output-metadata.json)" >> $GITHUB_OUTPUT
+          echo "version_name=$(jq '.elements[0].versionName' app/build/outputs/apk/debug/output-metadata.json)" >> $GITHUB_OUTPUT
+
+      - name: Print Version name
+        run: |
+          echo "versionCode: ${{steps.get-version-name.outputs.version_code}}"
+          echo "versionName: ${{steps.get-version-name.outputs.version_name}}"
+        
