@@ -1,0 +1,46 @@
+on:
+  push: 
+    branches:
+    - develop
+    - release/*
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: '11'
+
+      - name: Gradle cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: Build 
+        id: build
+        run: ./gradlew clean -PfromGithubAction=true assambleDebug --no-daemon --stacktrace --scan
+
+      - name: Get branch name
+        uses: nelonoel/branch-name@v1.0.1
+
+      - name: Cut branch name
+        id: branch
+        run: |
+          echo "::set-output name=branch_name::$(expr $BRANCH_NAME | cut -d'_' -f1)"
+
+      - name: Get version name
+        id: version
+        run: |
+          echo "::set-output name=version_code::$(jq '.elements[0].versionCode' app/build/outputs/apk/debug/output-metadata.json)"
+          echo "::set-output name=version_name::$(jq '.elements[0].versionName' app/build/outputs/apk/beta/output-metadata.json)"
