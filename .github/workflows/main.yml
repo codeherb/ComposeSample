@@ -38,7 +38,7 @@ jobs:
             
       - name: Build 
         id: build
-        run: ./gradlew clean -PfromGithubAction=true assambleDebug --no-daemon --stacktrace --scan
+        run: ./gradlew clean -PfromGithubAction=true build --no-daemon --stacktrace --scan
 
       - name: Get branch name
         uses: nelonoel/branch-name@v1.0.1
